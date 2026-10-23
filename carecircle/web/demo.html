@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>CareCircle demo</title>
+<style>
+  html,body{margin:0;height:100%;background:#0b1220;font-family:"Segoe UI",system-ui,sans-serif;color:#e8eefc}
+  .wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;height:calc(100% - 96px);padding:10px 10px 0;box-sizing:border-box}
+  .pane{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;border:1px solid #243252;background:#0b1220}
+  .pane>b{padding:7px 14px;font-size:13px;letter-spacing:.6px;background:#111a2e;color:#8ea0c4}
+  iframe{flex:1;border:0;width:100%;background:transparent}
+  .r{background:#f4f1ea}
+  #cap{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);max-width:1500px;background:#000c;color:#fff;font-size:30px;line-height:1.35;padding:12px 26px;border-radius:14px;text-align:center;opacity:0;transition:opacity .25s;z-index:9;pointer-events:none;font-weight:500}
+  #cap.on{opacity:1}
+</style></head>
+<body><div class="wrap">
+  <div class="pane"><b>MRS. HAN'S ECHO SHOW (ALEXA+ SIMULATOR) → CARECIRCLE MCP SERVER</b><iframe id="a" src="/?embed=1"></iframe></div>
+  <div class="pane r"><b style="background:#fffdf8;color:#6b7280">JISOO'S PHONE · FAMILY DASHBOARD</b><iframe id="b" src="/family?embed=1"></iframe></div>
+</div><div id="cap"></div>
+<script>window.cap=t=>{const c=document.getElementById("cap");if(!t){c.classList.remove("on");return}c.textContent=t;c.classList.add("on")}</script></body></html>

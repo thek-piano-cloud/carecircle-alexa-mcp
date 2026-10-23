@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareCircle · Family dashboard</title>
+<style>
+  :root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1f2a37;--mute:#6b7280;--line:#e7e1d3;--teal:#0f766e;--amber:#b45309;--red:#b91c1c;--green:#15803d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+  header{display:flex;align-items:center;gap:12px;padding:16px 22px;background:#fffdf8;border-bottom:1px solid var(--line)}
+  .badge{width:38px;height:38px;border-radius:12px;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:700}
+  h1{font-size:18px;margin:0} header small{color:var(--mute)}
+  body.embed header{display:none} body.embed main{grid-template-columns:1fr;padding:10px} body.embed .hero p{font-size:15px} body.embed #mood svg{max-height:112px} body.embed .row{padding:4px 0} body.embed .ring{width:84px;height:84px} body.embed .ring svg{width:84px;height:84px} body.embed .ring b{font-size:21px} body.embed .card{padding:12px 14px} body.embed .wide,body.embed .card{grid-column:auto}
+  main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 22px;max-width:1100px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 1px 0 #0000000a}
+  .card h2{margin:0 0 10px;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:650}
+  .wide{grid-column:1/-1}
+  .hero{display:flex;gap:18px;align-items:center}
+  .hero p{margin:0;font-size:17px}
+  .ring{position:relative;width:104px;height:104px;flex:none}
+  .ring svg{transform:rotate(-90deg)} .ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:26px}
+  .row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--line)} .row:first-of-type{border-top:0}
+  .row .n{flex:1} .row .t{color:var(--mute);font-size:13px}
+  .st{border-radius:999px;padding:2px 10px;font-size:12px;font-weight:650}
+  .taken{background:#dcfce7;color:var(--green)} .due{background:#fef3c7;color:var(--amber)} .missed{background:#fee2e2;color:var(--red)}
+  .upcoming,.skipped{background:#eee;color:var(--mute)}
+  .note{display:flex;gap:10px;padding:10px 12px;border-radius:14px;margin-bottom:8px;border:1px solid var(--line);background:#fff}
+  .note.fresh{animation:in .5s}
+  .note .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}
+  .info .ic{background:#64748b} .important .ic{background:var(--amber)} .urgent{border-color:#fca5a5;background:#fff5f5} .urgent .ic{background:var(--red)}
+  .note b{display:block;font-size:13px} .note small{color:var(--mute)}
+  @keyframes in{from{transform:translateY(-6px);opacity:0}}
+  svg text{font:11px "Segoe UI",sans-serif;fill:#6b7280}
+  .empty{color:var(--mute)}
+  @media(max-width:760px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="badge">CC</div><div><h1>CareCircle <small>· Jisoo's phone</small></h1></div></header>
+<main>
+  <div class="card wide"><h2>This week with Mrs. Han</h2>
+    <div class="hero"><div class="ring"><svg width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="#ece7da" stroke-width="10"/><circle id="arc" cx="52" cy="52" r="44" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round" stroke-dasharray="276.5" stroke-dashoffset="276.5" style="transition:stroke-dashoffset .8s"/></svg><b id="pct">–</b></div>
+    <p id="headline">Loading…</p></div></div>
+  <div class="card wide"><h2>Messages from Alexa+</h2><div id="alerts"></div></div>
+  <div class="card"><h2>Today's medicines</h2><div id="doses"></div></div>
+  <div class="card"><h2>Mood check-ins</h2><div id="mood"></div></div>
+</main>
+<script>
+const $=s=>document.querySelector(s); const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+if(location.search.includes("embed"))document.body.classList.add("embed");
+let seen=new Set();
+function moodChart(ch){
+  if(!ch.length)return '<span class="empty">No check-ins yet.</span>';
+  const W=420,H=130,p=24,n=ch.length, x=i=>p+(n===1?0:i*(W-2*p)/(n-1)), y=m=>H-p-(m-1)*(H-2*p)/4;
+  const pts=ch.map((c,i)=>[x(i),y(c.mood)]);
+  const path=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+" "+q[1].toFixed(1)).join(" ");
+  const grid=[1,3,5].map(m=>`<line x1="${p}" x2="${W-p}" y1="${y(m)}" y2="${y(m)}" stroke="#ece7da"/><text x="2" y="${y(m)+4}">${m}</text>`).join("");
+  const dots=pts.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="4.5" fill="${ch[i].mood<=2?"#b91c1c":"#0f766e"}"/>${ch[i].pain>=7?`<text x="${q[0]-8}" y="${q[1]-9}" style="fill:#b91c1c;font-weight:700">pain ${ch[i].pain}</text>`:""}`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}<path d="${path}" fill="none" stroke="#0f766e" stroke-width="2.5"/>${dots}</svg>`;
+}
+async function refresh(){
+  const s=await (await fetch("/api/state")).json();
+  const d=s.digest;
+  $("#pct").textContent=d.adherence_percent+"%";
+  $("#arc").style.strokeDashoffset=276.5*(1-d.adherence_percent/100);
+  $("#headline").textContent=d.headline;
+  $("#doses").innerHTML=s.plan.medications.map(m=>`<div class="row"><div class="n"><b>${esc(m.medication)}</b> <span class="t">${esc(m.dose)} · ${esc(m.time_text)}</span></div><span class="st ${m.state}">${m.state}</span></div>`).join("");
+  $("#mood").innerHTML=moodChart(d.checkins)+`<div class="t" style="color:#6b7280;margin-top:4px">Trend: <b>${esc(d.mood_trend)}</b></div>`;
+  const icon={info:"i",important:"!",urgent:"!!"};
+  $("#alerts").innerHTML=s.outbox.slice(0,3).map(o=>{const fresh=!seen.has(o.id);return `<div class="note ${o.urgency}${fresh&&seen.size?" fresh":""}" style="${fresh&&seen.size?"outline:2px solid #0f766e66":""}"><div class="ic">${icon[o.urgency]}</div><div><b>${o.urgency==="urgent"?"URGENT · ":""}${esc(o.message)}</b><small>${new Date(o.ts).toLocaleString('en-US', {weekday:"short",hour:"numeric",minute:"2-digit"})} · ${esc(o.urgency==="urgent"?"urgent · both children":o.urgency==="important"?"push + SMS":"app notification")} → ${esc(o.recipients)}</small></div></div>`}).join("")||'<span class="empty">Nothing yet.</span>';
+  s.outbox.forEach(o=>seen.add(o.id));
+}
+refresh(); setInterval(refresh,1500);
+</script>
+</body>
+</html>

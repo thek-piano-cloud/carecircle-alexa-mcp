@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareCircle · Alexa+ simulator</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213a; --line:#243252; --text:#e8eefc; --mute:#8ea0c4;
+    --teal:#2dd4bf; --teal2:#14b8a6; --amber:#fbbf24; --red:#f87171; --green:#4ade80; --blue:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 700px at 20% -10%,#16315a 0,#0b1220 55%) fixed;color:var(--text);
+       font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid var(--line);background:#0b1220cc;backdrop-filter:blur(6px)}
+  .logo{width:34px;height:34px;border-radius:50%;background:conic-gradient(from 210deg,var(--teal),var(--blue),var(--teal));display:grid;place-items:center}
+  .logo:after{content:"";width:16px;height:16px;border-radius:50%;background:var(--bg)}
+  h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.2px}
+  header small{color:var(--mute)}
+  .pill{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mute)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  main{display:grid;grid-template-columns:minmax(420px,1.05fr) minmax(380px,.95fr);gap:22px;padding:22px 26px;max-width:1380px;margin:0 auto}
+  body.embed header{display:none} body.embed main{padding:10px 12px;max-width:none;grid-template-columns:minmax(420px,1fr) minmax(360px,.9fr)} body.embed .screen{height:calc(100vh - 56px)} body.embed #log{height:calc(100vh - 430px)} body.embed .device{padding:12px}
+  /* device */
+  .device{background:linear-gradient(160deg,#1b2744,#0f172b);border:1px solid #2b3a5e;border-radius:26px;padding:16px;box-shadow:0 20px 60px #0008,inset 0 1px 0 #ffffff12}
+  .screen{background:#070d1a;border-radius:16px;border:1px solid #1d2a47;display:flex;flex-direction:column;height:640px;overflow:hidden;position:relative}
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;color:var(--mute);font-size:13px}
+  .clock{font-size:26px;color:var(--text);font-weight:300;letter-spacing:1px}
+  .ring{width:44px;height:44px;border-radius:50%;border:3px solid #1c2c4d;position:relative}
+  .ring.listen{border-color:var(--teal);animation:pulse 1.2s infinite}
+  .ring:after{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8ff,#08c)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 #2dd4bf66}100%{box-shadow:0 0 0 16px #2dd4bf00}}
+  .meds{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:6px;padding:0 16px 8px}
+  .med{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 9px;font-size:12px;transition:.3s;line-height:1.3}
+  .med b{display:block;font-size:13.5px}
+  .med span{color:var(--mute)}
+  .med.taken{border-color:#1f6f4a;background:#0f2a22} .med.taken i{color:var(--green)}
+  .med.due{border-color:#9a7416;background:#2a2210;animation:glow 1.8s infinite} .med.due i{color:var(--amber)}
+  .med.missed{border-color:#7f2d2d;background:#2a1414} .med.missed i{color:var(--red)}
+  .med.upcoming i{color:var(--mute)} .med i{font-style:normal;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px}
+  @keyframes glow{50%{box-shadow:0 0 14px #fbbf2455}}
+  .chat{flex:1;overflow:auto;padding:8px 16px 4px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+  .u{align-self:flex-end;background:#1d4ed8;color:#fff;padding:9px 14px;border-radius:16px 16px 4px 16px;max-width:78%}
+  .a{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);padding:10px 14px;border-radius:16px 16px 16px 4px;max-width:86%}
+  .a.warn{border-color:#9a7416;background:#2a2210} .a.bad{border-color:#7f2d2d;background:#2a1414}
+  .a small{display:block;margin-top:5px;color:var(--mute);font-size:11.5px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;padding:6px 16px}
+  .chip{background:#0f1a30;border:1px solid var(--line);color:#bcd0f7;border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+  .chip:hover{border-color:var(--teal);color:#fff}
+  form{display:flex;gap:8px;padding:10px 16px 14px}
+  input{flex:1;background:#0d1730;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:11px 16px;font-size:15px;outline:none}
+  input:focus{border-color:var(--teal)}
+  button.send{background:var(--teal2);border:0;color:#04201c;font-weight:700;border-radius:999px;padding:0 20px;cursor:pointer}
+  button.mic{background:#0f1a30;border:1px solid var(--line);color:var(--text);border-radius:50%;width:44px;cursor:pointer}
+  button.mic.on{border-color:var(--teal);box-shadow:0 0 12px #2dd4bf66}
+  /* inspector */
+  aside{display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .card h2{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin:0 0 10px;font-weight:600}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+  .kv span{color:var(--mute)} .kv code{color:#9ff3e6;word-break:break-all}
+  #log{height:424px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+  .call{border:1px solid var(--line);border-radius:12px;background:#0b1428;overflow:hidden}
+  .call .h{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#101b35;font-size:12.5px}
+  .tag{border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700}
+  .t-req{background:#1e3a8a;color:#bfdbfe}.t-ok{background:#064e3b;color:#a7f3d0}.t-warn{background:#713f12;color:#fde68a}.t-bad{background:#7f1d1d;color:#fecaca}
+  .call pre{margin:0;padding:8px 12px;font:12px/1.45 ui-monospace,Consolas,monospace;color:#c9d6f2;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto}
+  .tools{display:flex;flex-wrap:wrap;gap:6px}.tools span{background:#0f2a2a;border:1px solid #1d4b49;color:#9ff3e6;border-radius:8px;padding:2px 8px;font:12px ui-monospace,Consolas,monospace}
+  .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .ctl button{background:#0f1a30;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 12px;cursor:pointer;font-size:12.5px}
+  .ctl button:hover{border-color:var(--teal)}
+  .empty{color:var(--mute);font-size:13px;padding:6px 2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"></div>
+  <div><h1>CareCircle <small>· Alexa+ simulator</small></h1></div>
+  <div class="pill"><span class="dot"></span><span id="conn">MCP server · Streamable HTTP · 2025-11-25</span></div>
+</header>
+<main>
+  <section class="device">
+    <div class="screen">
+      <div class="bar"><div><div class="clock" id="clock">--:--</div><div id="date">Echo Show · Mrs. Han's kitchen</div></div><div class="ring" id="ring"></div></div>
+      <div class="meds" id="meds"></div>
+      <div class="chat" id="chat"></div>
+      <div class="chips" id="chips"></div>
+      <form id="form" autocomplete="off">
+        <button type="button" class="mic" id="mic" title="Speak (browser speech recognition)">&#127908;</button>
+        <input id="text" placeholder="Say something to Alexa+ …" aria-label="Say something to Alexa+">
+        <button class="send">Send</button>
+      </form>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <h2>How it is wired</h2>
+      <div class="kv">
+        <span>Endpoint</span><code id="endpoint">/mcp</code>
+        <span>Transport</span><code>Streamable HTTP (MCP 2025-11-25)</code>
+        <span>Client</span><code>official MCP SDK client session per utterance</code>
+      </div>
+      <div class="tools" id="tools" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <h2>Live MCP traffic</h2>
+      <div id="log"><div class="empty">Say something — every MCP request the agent makes appears here.</div></div>
+    </div>
+    <div class="card ctl">
+      <h2 style="margin:0 8px 0 0">Demo clock</h2>
+      <button data-adv="30">+30 min</button><button data-adv="120">+2 h</button><button data-set="08:05">08:05</button><button data-set="15:00">15:00</button><button data-set="19:30">19:30</button><button id="reset">Reset day</button>
+    </div>
+  </aside>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const embed=location.search.includes("embed"); if(embed)document.body.classList.add("embed");
+$("#endpoint").textContent=location.origin+"/mcp";
+const CHIPS=["What do I need to do today?","I took my blood pressure pill","I feel a bit lonely today","Remind me to call the pharmacy at 3 pm","Tell Jisoo I'm going to the market","How was my week?"];
+CHIPS.forEach(c=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=c;b.onclick=()=>send(c);$("#chips").appendChild(b)});
+
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function add(cls,html){const d=document.createElement("div");d.className=cls;d.innerHTML=html;$("#chat").appendChild(d);$("#chat").scrollTop=1e9;return d}
+function speak(t){ if(embed||!window.speechSynthesis)return; try{const u=new SpeechSynthesisUtterance(t);u.rate=.95;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){} }
+
+async function refresh(){
+  const s=await (await fetch("/api/state")).json();
+  const d=new Date(s.clock);
+  $("#clock").textContent=d.toLocaleTimeString('en-US', {hour:"numeric",minute:"2-digit"});
+  $("#date").textContent="Echo Show · "+d.toLocaleDateString('en-US', {weekday:"long",month:"short",day:"numeric"});
+  $("#meds").innerHTML=s.plan.medications.map(m=>`<div class="med ${m.state}"><i>${m.state}</i><b>${esc(m.medication)}</b><span>${esc(m.dose)} · ${esc(m.time_text)}</span></div>`).join("");
+}
+function logCall(r){
+  const log=$("#log"); if(log.querySelector(".empty"))log.innerHTML="";
+  const ok=!r.isError, st=(r.result&&r.result.status)||"";
+  const tagCls=!ok?"t-bad":(st==="already_taken"||st==="too_early"||st==="needs_clarification"||st==="unknown_medication")?"t-warn":"t-ok";
+  const el=document.createElement("div");el.className="call";
+  el.innerHTML=`<div class="h"><span class="tag t-req">tools/call</span><b>${esc(r.tool)}</b><span style="margin-left:auto" class="tag ${tagCls}">${esc(st||(ok?"ok":"error"))}</span></div>
+  <pre>${esc(JSON.stringify(r.arguments,null,1))}</pre>
+  <pre style="border-top:1px solid #1d2a47;color:#9ff3e6">${esc(JSON.stringify(trim(r.result),null,1))}</pre>`;
+  log.prepend(el);
+}
+function trim(o){ if(!o)return o; const c={...o}; delete c.spoken; return c }
+async function send(text){
+  text=text.trim(); if(!text)return;
+  $("#text").value=""; add("u",esc(text)); $("#ring").classList.add("listen");
+  const think=add("a","<small>thinking…</small>");
+  let r; try{ r=await (await fetch("/api/utterance",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text})})).json() }
+  catch(e){ think.className="a bad"; think.textContent="Connection problem."; $("#ring").classList.remove("listen"); return }
+  const st=r.result&&r.result.status;
+  think.className="a"+((st==="already_taken"||st==="too_early")?" warn":"")+((r.result&&r.result.alerts&&r.result.alerts.length)||(r.result&&r.result.notification&&r.result.notification.urgency==="urgent")?" bad":"");
+  think.innerHTML=esc(r.reply)+(r.tool?`<small>via MCP tool <b>${esc(r.tool)}</b></small>`:"");
+  if(r.tool)logCall(r); $("#chat").scrollTop=1e9; speak(r.reply); $("#ring").classList.remove("listen"); refresh();
+}
+$("#form").onsubmit=e=>{e.preventDefault();send($("#text").value)};
+document.querySelectorAll("[data-adv]").forEach(b=>b.onclick=async()=>{await fetch("/api/clock",{method:"POST",body:JSON.stringify({advance_minutes:+b.dataset.adv})});refresh()});
+document.querySelectorAll("[data-set]").forEach(b=>b.onclick=async()=>{const s=await (await fetch("/api/state")).json();const day=s.clock.slice(0,10);await fetch("/api/clock",{method:"POST",body:JSON.stringify({set:day+"T"+b.dataset.set})});refresh()});
+$("#reset").onclick=async()=>{await fetch("/api/reset",{method:"POST",body:"{}",headers:{"content-type":"application/json"}});$("#chat").innerHTML="";$("#log").innerHTML='<div class="empty">Day reset.</div>';refresh();greet()};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){const rec=new SR();rec.lang="en-US";rec.onresult=e=>send(e.results[0][0].transcript);rec.onend=()=>$("#mic").classList.remove("on");
+  $("#mic").onclick=()=>{$("#mic").classList.add("on");rec.start()}} else $("#mic").style.display="none";
+async function greet(){
+  const s=await (await fetch("/api/state")).json();
+  add("a",`Good ${new Date(s.clock).getHours()<12?"morning":"day"}, Mrs. Han. ${esc(s.plan.spoken)}<small>Alexa+ with CareCircle</small>`);
+}
+// show the server's tools in the inspector (plain JSON-RPC over Streamable HTTP)
+(async()=>{
+  const h={"content-type":"application/json","accept":"application/json, text/event-stream","mcp-protocol-version":"2025-11-25"};
+  try{
+    await fetch("/mcp",{method:"POST",headers:h,body:JSON.stringify({jsonrpc:"2.0",id:1,method:"initialize",params:{protocolVersion:"2025-11-25",capabilities:{},clientInfo:{name:"simulator-ui",version:"1"}}})});
+    const r=await (await fetch("/mcp",{method:"POST",headers:h,body:JSON.stringify({jsonrpc:"2.0",id:2,method:"tools/list"})})).json();
+    $("#tools").innerHTML=r.result.tools.map(t=>`<span title="${esc(t.description.slice(0,160))}">${esc(t.name)}</span>`).join("");
+  }catch(e){}
+})();
+refresh(); greet(); setInterval(refresh,4000);
+</script>
+</body>
+</html>
