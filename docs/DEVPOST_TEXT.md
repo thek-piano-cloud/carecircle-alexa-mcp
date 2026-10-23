@@ -45,4 +45,4 @@ Speaking reminders on the Echo through Alexa+ proactive notifications, a live Ap
 
 **Existed before the hackathon?** No — CareCircle and mcp-voice-check were designed and written during the submission window.
 
-**Repository:** https://github.com/thek-piano-cloud/carecircle-alexa-mcp   **Open Source project:** https://github.com/thek-piano-cloud/mcp-voice-check   **Demo video (YouTube, public, English):** <VIDEO_URL>
+**Repository:** https://github.com/thek-piano-cloud/carecircle-alexa-mcp   **Open Source project:** https://github.com/thek-piano-cloud/mcp-voice-check   **Demo video (YouTube, public, English):** https://youtu.be/k_Vcz1D3gKY
