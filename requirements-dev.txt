@@ -1,0 +1,5 @@
+-r requirements.txt
+# only for tools/make_video.py (demo video):
+playwright>=1.40   # screen recording
+google-genai>=1.0  # narration voices, needs GEMINI_API_KEY
+pillow>=10         # title cards

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "carecircle": {
+      "type": "http",
+      "url": "http://127.0.0.1:8780/mcp",
+      "description": "CareCircle - medicine safety, check-ins and family alerts (MCP 2025-11-25, Streamable HTTP)"
+    }
+  }
+}
